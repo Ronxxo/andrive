@@ -1,104 +1,425 @@
 import 'package:flutter/material.dart';
+import 'package:food_trailer_quotation/services/pdf_service.dart';
+import 'package:food_trailer_quotation/screens/login_screen.dart';
+import 'package:food_trailer_quotation/models/component_model.dart';
+import 'package:share_plus/share_plus.dart';
 
 class CustomTrailerScreen extends StatefulWidget {
+  const CustomTrailerScreen({Key? key}) : super(key: key);
+
   @override
-  _CustomTrailerScreenState createState() => _CustomTrailerScreenState();
+  State<CustomTrailerScreen> createState() => _CustomTrailerScreenState();
 }
 
 class _CustomTrailerScreenState extends State<CustomTrailerScreen> {
-  String? selectedBase;
-  List<String> selectedComponents = [];
-  double totalPrice = 0;
+  String? _selectedBase;
+  final List<String> _selectedComponents = [];
+  double _totalPrice = 0;
+  int _currentStep = 0; // 0: Seleccionar base, 1: Seleccionar componentes
 
-  final List<Map<String, dynamic>> trailerBases = [
-    {'name': 'Base Tipo 1', 'price': 5800000},
-    {'name': 'Base Tipo 2', 'price': 8700000},
-    {'name': 'Base Tipo 3', 'price': 8000000},
-  ];
-
-  final List<Map<String, dynamic>> components = [
-    {'name': 'Plancha de 60x40', 'price': 370000},
-    {'name': 'Freidora', 'price': 220000},
-    {'name': 'Vaporera', 'price': 250000},
-    {'name': 'Parrillas a carbón', 'price': 475000},
-    {'name': 'Parrilla piedra volcánica', 'price': 400000},
-    {'name': 'Parrilla a gas', 'price': 325000},
-    {'name': 'Plancha acero inoxidable', 'price': 525000},
-    {'name': 'Cajones interiores', 'price': 680000},
-    {'name': 'Lavaplatos con cajón', 'price': 650000},
+  final List<Map<String, dynamic>> _trailerBases = [
+    {
+      'id': '1',
+      'name': 'Base Tipo 1',
+      'price': 5800000,
+      'description': '160 de ancho x 2 metros de largo x 2 mts de altura',
+      'features': [
+        'Iluminación',
+        'PVC',
+        'Tres Toma corriente',
+        'Piso tapete alfajor',
+        'Pintura interna y externa',
+        'Brazos hidráulicos',
+      ],
+    },
+    {
+      'id': '2',
+      'name': 'Base Tipo 2',
+      'price': 8700000,
+      'description': '2 mts de ancho x 3 metros de largo x 2 mts de altura',
+      'features': [
+        'Iluminación',
+        'PVC',
+        'Tres Toma corriente',
+        'Piso tapete alfajor',
+        'Pintura interna y externa',
+        'Brazos hidráulicos',
+        'Ventanas de atención',
+      ],
+    },
+    {
+      'id': '3',
+      'name': 'Base Tipo 3',
+      'price': 8000000,
+      'description': '2 mts de ancho x 4 metros de largo x 2 mts de altura',
+      'features': [
+        'Iluminación',
+        'PVC',
+        'Tres Toma corriente',
+        'Piso tapete alfajor',
+        'Pintura interna y externa',
+        'Brazos hidráulicos',
+        'Ventanas de atención',
+      ],
+    },
   ];
 
   void _calculateTotalPrice() {
     double basePrice =
-        trailerBases.firstWhere(
-          (base) => base['name'] == selectedBase,
-        )['price'];
-    double componentsPrice = selectedComponents.fold(
-      0,
-      (sum, component) =>
-          sum +
-          components.firstWhere((comp) => comp['name'] == component)['price'],
-    );
-    setState(() {
-      totalPrice = basePrice + componentsPrice;
+        _trailerBases
+            .firstWhere(
+              (base) => base['id'] == _selectedBase,
+              orElse: () => {'price': 0},
+            )['price']
+            .toDouble();
+
+    double componentsPrice = _selectedComponents.fold(0, (sum, componentId) {
+      final component = Component.availableComponents.firstWhere(
+        (c) => c.id == componentId,
+        orElse: () => Component(id: '', name: '', price: 0),
+      );
+      return sum + component.price;
     });
+
+    setState(() {
+      _totalPrice = basePrice + componentsPrice;
+    });
+  }
+
+  void _generateQuotation() {
+    if (_selectedBase == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor selecciona una base')),
+      );
+      return;
+    }
+
+    final selectedBase = _trailerBases.firstWhere(
+      (base) => base['id'] == _selectedBase,
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => LoginScreen(
+              onLoginSuccess: (name, email, phone) async {
+                final pdfService = PdfService();
+
+                String description = '${selectedBase['name']}\n';
+                description += '${selectedBase['description']}\n\n';
+                description += 'Características:\n';
+                description += selectedBase['features'].join('\n');
+                description += '\n\nComponentes seleccionados:\n';
+                description += _selectedComponents
+                    .map((id) {
+                      final component = Component.availableComponents
+                          .firstWhere((c) => c.id == id);
+                      return '- ${component.name}: \$${component.price.toStringAsFixed(0)}';
+                    })
+                    .join('\n');
+
+                try {
+                  final pdfFile = await pdfService.generateQuotation(
+                    name,
+                    email,
+                    phone,
+                    description,
+                    _totalPrice,
+                    selectedBase['id'],
+                  );
+
+                  if (!context.mounted) return;
+
+                  await showDialog(
+                    context: context,
+                    builder:
+                        (context) => AlertDialog(
+                          title: const Text('Cotización generada'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                '¿Qué deseas hacer con la cotización?',
+                              ),
+                              const SizedBox(height: 20),
+                              Text(
+                                'Total: \$${_totalPrice.toStringAsFixed(0)}',
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context),
+                              child: const Text('Cerrar'),
+                            ),
+                            TextButton(
+                              onPressed: () async {
+                                await Share.shareFiles(
+                                  [pdfFile.path],
+                                  text:
+                                      'Cotización para ${selectedBase['name']}',
+                                );
+                                if (context.mounted) Navigator.pop(context);
+                              },
+                              child: const Text('Compartir PDF'),
+                            ),
+                          ],
+                        ),
+                  );
+                } catch (e) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error al generar PDF: $e')),
+                    );
+                  }
+                }
+              },
+            ),
+      ),
+    );
+  }
+
+  Widget _buildBaseSelection() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const Text(
+            'Selecciona la base del trailer:',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          ..._trailerBases.map(
+            (base) => Card(
+              margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: RadioListTile<String>(
+                title: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      base['name'],
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(base['description']),
+                    const SizedBox(height: 4),
+                    Text(
+                      '\$${base['price'].toStringAsFixed(0)}',
+                      style: const TextStyle(
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+                value: base['id'],
+                groupValue: _selectedBase,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedBase = value;
+                    _calculateTotalPrice();
+                    _currentStep = 1; // Avanzar al siguiente paso
+                  });
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildComponentSelection() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isSmallScreen = screenWidth < 600;
+
+    return Column(
+      children: [
+        const Text(
+          'Componentes adicionales:',
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: MediaQuery.of(context).size.height * 0.6,
+          child: GridView.builder(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: isSmallScreen ? 2 : 3,
+              childAspectRatio: 1.2,
+              mainAxisSpacing: 8,
+              crossAxisSpacing: 8,
+            ),
+            itemCount: Component.availableComponents.length,
+            itemBuilder: (context, index) {
+              final component = Component.availableComponents[index];
+              return Card(
+                child: InkWell(
+                  onTap: () {
+                    setState(() {
+                      if (_selectedComponents.contains(component.id)) {
+                        _selectedComponents.remove(component.id);
+                      } else {
+                        _selectedComponents.add(component.id);
+                      }
+                      _calculateTotalPrice();
+                    });
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Checkbox(
+                          value: _selectedComponents.contains(component.id),
+                          onChanged: (bool? value) {
+                            setState(() {
+                              if (value == true) {
+                                _selectedComponents.add(component.id);
+                              } else {
+                                _selectedComponents.remove(component.id);
+                              }
+                              _calculateTotalPrice();
+                            });
+                          },
+                        ),
+                        Text(
+                          component.name,
+                          textAlign: TextAlign.center,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '\$${component.price.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  _currentStep = 0; // Regresar al paso anterior
+                });
+              },
+              child: const Text('Atrás'),
+            ),
+            ElevatedButton(
+              onPressed: _generateQuotation,
+              child: const Text('Generar Cotización'),
+            ),
+          ],
+        ),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Crear Trailer Personalizado'),
-        backgroundColor: Colors.redAccent,
+        title: const Text('Trailer Personalizado'),
+        centerTitle: true,
+        actions:
+            _currentStep == 1
+                ? [
+                  IconButton(
+                    icon: const Icon(Icons.info),
+                    onPressed: () {
+                      final selectedBase = _trailerBases.firstWhere(
+                        (base) => base['id'] == _selectedBase,
+                      );
+                      showDialog(
+                        context: context,
+                        builder:
+                            (context) => AlertDialog(
+                              title: Text(selectedBase['name']),
+                              content: SingleChildScrollView(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(selectedBase['description']),
+                                    const SizedBox(height: 16),
+                                    const Text(
+                                      'Características:',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    ...selectedBase['features']
+                                        .map((feature) => Text('- $feature'))
+                                        .toList(),
+                                  ],
+                                ),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: const Text('Cerrar'),
+                                ),
+                              ],
+                            ),
+                      );
+                    },
+                  ),
+                ]
+                : null,
       ),
-      body: Column(
-        children: [
-          DropdownButton<String>(
-            hint: Text('Selecciona una base'),
-            value: selectedBase,
-            items:
-                trailerBases.map((base) {
-                  return DropdownMenuItem<String>(
-                    value: base['name'],
-                    child: Text('${base['name']} (\$${base['price']})'),
-                  );
-                }).toList(),
-            onChanged: (value) {
-              setState(() {
-                selectedBase = value;
-                _calculateTotalPrice();
-              });
-            },
-          ),
-          Expanded(
-            child: ListView(
-              children:
-                  components.map((component) {
-                    return CheckboxListTile(
-                      title: Text(
-                        '${component['name']} (\$${component['price']})',
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child:
+            _currentStep == 0
+                ? _buildBaseSelection()
+                : _buildComponentSelection(),
+      ),
+      bottomNavigationBar:
+          _currentStep == 1
+              ? Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey[200],
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(12),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'TOTAL:',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
-                      value: selectedComponents.contains(component['name']),
-                      onChanged: (bool? value) {
-                        setState(() {
-                          if (value == true) {
-                            selectedComponents.add(component['name']);
-                          } else {
-                            selectedComponents.remove(component['name']);
-                          }
-                          _calculateTotalPrice();
-                        });
-                      },
-                    );
-                  }).toList(),
-            ),
-          ),
-          Text(
-            'Precio Total: \$${totalPrice.toStringAsFixed(2)}',
-            style: TextStyle(fontSize: 20, color: Colors.redAccent),
-          ),
-        ],
-      ),
+                    ),
+                    Text(
+                      '\$${_totalPrice.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+              : null,
     );
   }
 }

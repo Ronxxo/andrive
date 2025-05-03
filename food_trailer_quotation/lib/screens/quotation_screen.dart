@@ -8,7 +8,8 @@ class QuotationScreen extends StatelessWidget {
   QuotationScreen({
     required this.name,
     required this.email,
-    this.quotation, // Agregar este parámetro opcional
+    this.quotation,
+    required String phone, // Agregar este parámetro opcional
   });
 
   @override

@@ -1,15 +1,14 @@
-// screens/predefined_trailers_screen.dart
 import 'package:flutter/material.dart';
-import 'dart:io';
-// ignore: unused_import
 import 'package:share_plus/share_plus.dart';
 import 'login_screen.dart';
 import '../services/pdf_service.dart';
+import 'dart:io';
 
 class PredefinedTrailersScreen extends StatelessWidget {
   final PdfService pdfService = PdfService();
 
   final List<Map<String, dynamic>> trailers = [
+    // Trailer de Exhibición
     {
       'name': 'Trailer de Exhibición',
       'description': '''
@@ -40,7 +39,14 @@ Medidas 160 de ancho x 2.00 de largo x 2.00 de altura
 ''',
       'price': 6400000,
       'image': 'assets/images/trailer_1.jpg',
+      'features': [
+        '2 metros de altura',
+        'Iluminación 110V y 12V',
+        'Brazos hidráulicos',
+        'Pintura personalizada',
+      ],
     },
+    // Trailer de Cocina
     {
       'name': 'Trailer de Cocina',
       'description': '''
@@ -50,9 +56,9 @@ Medidas 160 de ancho x 2.00 de largo x 2.00 de altura
 - Parrillas a carbón: \$475,000
 - Parrilla de piedra volcánica: \$400,000
 - Parrilla a gas: \$325,000
-- Topping 1/9: \$30,000
+- Topping 1/9: \$30,000 unidad
 - Topping 1/6: \$40,000
-- Topping 1/3: \$50,000
+- Topping 1/3: \$50,000 unidad
 - Lámina en alfajor de aluminio para piso: \$500,000
 - Diseño, impresión e instalación: \$780,000
 - Campana extractora de 1m x 40cm: \$1,400,000
@@ -64,7 +70,15 @@ Medidas 160 de ancho x 2.00 de largo x 2.00 de altura
 ''',
       'price': 8700000,
       'image': 'assets/images/trailer_2.jpg',
+      'features': [
+        'Equipo profesional completo',
+        'Plancha de 60x40',
+        'Freidora incluida',
+        'Ventilación profesional',
+        '8.7 millones',
+      ],
     },
+    // Trailer de Heladería
     {
       'name': 'Trailer de Heladería',
       'description': '''
@@ -74,7 +88,7 @@ Medidas 170 de ancho x 2 de altura
 - Topping en acero inoxidable
 - Cajón aéreo
 - Espacio para refrigerador
-- Iluminación
+- Iluminación LED profesional
 - 3 tomas corrientes
 - Pintura interna y externa
 - 2 ventanas laterales
@@ -84,22 +98,26 @@ Medidas 170 de ancho x 2 de altura
 ''',
       'price': 7800000,
       'image': 'assets/images/trailer_3.jpg',
+      'features': [
+        'Acero inoxidable',
+        'Espacio refrigerado',
+        'Diseño personalizado',
+        'Iluminación LED',
+        '7.8 millones',
+      ],
     },
   ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Trailers Predefinidos'),
-        backgroundColor: Colors.redAccent,
-      ),
+      appBar: AppBar(title: const Text('Trailers Predefinidos')),
       body: ListView.builder(
         itemCount: trailers.length,
         itemBuilder: (context, index) {
           final trailer = trailers[index];
           return Card(
-            margin: EdgeInsets.all(8.0),
+            margin: const EdgeInsets.all(12),
             elevation: 4,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
@@ -114,62 +132,107 @@ Medidas 170 de ancho x 2 de altura
                     borderRadius: BorderRadius.circular(10),
                     child: Image.asset(
                       trailer['image'],
-                      height: 200,
+                      height: 180,
                       width: double.infinity,
                       fit: BoxFit.cover,
                     ),
                   ),
-                  SizedBox(height: 16),
-                  // Nombre del trailer
-                  Text(
-                    trailer['name'],
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.redAccent,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  // Descripción del trailer
-                  Text(trailer['description'], style: TextStyle(fontSize: 16)),
-                  SizedBox(height: 16),
-                  // Precio del trailer
-                  Text(
-                    'Precio: \$${trailer['price'].toStringAsFixed(0)}',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                    ),
-                  ),
-                  SizedBox(height: 16),
-                  // Botón para Generar Cotización
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (context) => LoginScreen(
-                                onLoginSuccess: (name, email) {
-                                  _handleQuotation(
-                                    context,
-                                    trailer,
-                                    name,
-                                    email,
-                                  );
-                                },
-                              ),
+                  const SizedBox(height: 16),
+
+                  // Nombre y precio
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        trailer['name'],
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
                         ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
-                      padding: EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.green.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '\$${trailer['price'].toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+
+                  // Características principales
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 4,
+                    children:
+                        (trailer['features'] as List<String>)
+                            .map(
+                              (feature) => Chip(
+                                label: Text(feature),
+                                backgroundColor: Colors.grey[200],
+                              ),
+                            )
+                            .toList(),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Descripción (con botón "Ver más")
+                  ExpansionTile(
+                    title: const Text(
+                      'Ver detalles completos',
+                      style: TextStyle(fontSize: 14),
                     ),
-                    child: Text(
-                      'Generar Cotización',
-                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          trailer['description'],
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Botón de cotización
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder:
+                                (context) => LoginScreen(
+                                  onLoginSuccess: (name, email, phone) {
+                                    _handleQuotation(
+                                      context,
+                                      trailer,
+                                      name,
+                                      email,
+                                      phone,
+                                    );
+                                  },
+                                ),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: const Text('SOLICITAR COTIZACIÓN'),
                     ),
                   ),
                 ],
@@ -181,36 +244,68 @@ Medidas 170 de ancho x 2 de altura
     );
   }
 
-  // Método para manejar la cotización
   void _handleQuotation(
     BuildContext context,
     Map<String, dynamic> trailer,
     String name,
     String email,
+    String phone,
   ) async {
     try {
-      // Generar el PDF usando tu servicio
       final File pdfFile = await pdfService.generateQuotation(
         name,
         email,
-        trailer['description'],
+        phone,
+        '${trailer['name']}\n\n${trailer['description']}',
         trailer['price'].toDouble(),
+        trailer['features'].join(', '),
+        imagePath: trailer['image'],
       );
 
-      // Mostrar un snackbar de éxito
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('¡Cotización generada con éxito!')),
+      if (!context.mounted) return;
+
+      await showDialog(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: const Text('Cotización generada'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text('¿Qué deseas hacer con la cotización?'),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Total: \$${trailer['price'].toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cerrar'),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    await Share.shareFiles([
+                      pdfFile.path,
+                    ], text: 'Cotización de ${trailer['name']}');
+                    if (context.mounted) Navigator.pop(context);
+                  },
+                  child: const Text('Compartir PDF'),
+                ),
+              ],
+            ),
       );
-
-      // Opcional: Compartir el PDF
-
-      // Navegar de regreso
-      Navigator.pop(context);
     } catch (e) {
-      // Mostrar un snackbar de error
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al generar la cotización: $e')),
-      );
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al generar cotización: $e')),
+        );
+      }
     }
   }
 }

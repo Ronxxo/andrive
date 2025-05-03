@@ -81,14 +81,19 @@ class _TrailerDetailScreenState extends State<TrailerDetailScreen> {
         components: widget.selectedComponents ?? [],
         totalPrice: _totalPrice,
         date: DateTime.now(),
+        userPhone: '',
       );
 
       Navigator.push(
         context,
         MaterialPageRoute(
           builder:
-              (context) =>
-                  QuotationScreen(quotation: quotation, name: '', email: ''),
+              (context) => QuotationScreen(
+                quotation: quotation,
+                name: '',
+                email: '',
+                phone: '',
+              ),
         ),
       );
     } catch (e) {

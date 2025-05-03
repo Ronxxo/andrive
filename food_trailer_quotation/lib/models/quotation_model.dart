@@ -8,22 +8,26 @@ class Quotation {
   final String userId;
   final String userName;
   final String userEmail;
+  final String userPhone;
   final TrailerModel? predefinedTrailer;
   final TrailerBase? trailerBase;
   final List<Component> components;
   final double totalPrice;
   final DateTime date;
+  final String? pdfUrl;
 
   Quotation({
     required this.id,
     required this.userId,
     required this.userName,
     required this.userEmail,
+    required this.userPhone,
     this.predefinedTrailer,
     this.trailerBase,
     this.components = const [],
     required this.totalPrice,
     required this.date,
+    this.pdfUrl,
   }) : assert(totalPrice >= 0, 'El precio total no puede ser negativo'),
        assert(
          userName.isNotEmpty,
@@ -32,30 +36,35 @@ class Quotation {
        assert(
          userEmail.isNotEmpty,
          'El correo del usuario no puede estar vacío',
+       ),
+       assert(
+         userPhone.isNotEmpty,
+         'El teléfono del usuario no puede estar vacío',
        );
 
-  /// Convierte la cotización a un mapa para Firestore.
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'userId': userId,
       'userName': userName,
       'userEmail': userEmail,
+      'userPhone': userPhone,
       'predefinedTrailer': predefinedTrailer?.toMap(),
       'trailerBase': trailerBase?.toMap(),
       'components': components.map((x) => x.toMap()).toList(),
       'totalPrice': totalPrice,
       'date': Timestamp.fromDate(date),
+      'pdfUrl': pdfUrl,
     };
   }
 
-  /// Crea una instancia de `Quotation` desde un mapa de Firestore.
   static Quotation fromMap(Map<String, dynamic> map) {
     return Quotation(
       id: map['id'] ?? '',
       userId: map['userId'] ?? '',
       userName: map['userName'] ?? '',
       userEmail: map['userEmail'] ?? '',
+      userPhone: map['userPhone'] ?? '',
       predefinedTrailer:
           map['predefinedTrailer'] != null
               ? TrailerModel.fromJson(map['predefinedTrailer'])
@@ -72,10 +81,10 @@ class Quotation {
               : [],
       totalPrice: map['totalPrice']?.toDouble() ?? 0.0,
       date: (map['date'] as Timestamp).toDate(),
+      pdfUrl: map['pdfUrl'],
     );
   }
 
-  /// Calcula el precio total basado en la base y los componentes.
   double calculateTotalPrice() {
     double basePrice = trailerBase?.price ?? 0;
     double componentsPrice = components.fold(
@@ -85,26 +94,21 @@ class Quotation {
     return basePrice + componentsPrice;
   }
 
-  /// Devuelve la fecha formateada como `dd/MM/yyyy`.
   String formattedDate() {
     return '${date.day}/${date.month}/${date.year}';
   }
 
   @override
   String toString() {
-    return 'Quotation(id: $id, userId: $userId, userName: $userName, userEmail: $userEmail, totalPrice: $totalPrice, date: $date)';
+    return 'Quotation(id: $id, userName: $userName, totalPrice: $totalPrice)';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
-
-    return other is Quotation &&
-        other.id == id &&
-        other.userId == userId &&
-        other.totalPrice == totalPrice;
+    return other is Quotation && other.id == id;
   }
 
   @override
-  int get hashCode => id.hashCode ^ userId.hashCode ^ totalPrice.hashCode;
+  int get hashCode => id.hashCode;
 }

@@ -1,12 +1,9 @@
-// screens/login_screen.dart
 import 'package:flutter/material.dart';
 import 'quotation_screen.dart';
 
 class LoginScreen extends StatefulWidget {
-  // Añadir el callback como parámetro opcional
-  final Function(String, String)? onLoginSuccess;
+  final Function(String, String, String)? onLoginSuccess;
 
-  // Constructor actualizado
   const LoginScreen({Key? key, this.onLoginSuccess}) : super(key: key);
 
   @override
@@ -17,22 +14,23 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
 
-  // Modificar el método para llamar al callback si existe
   void _processForm() {
     if (_formKey.currentState!.validate()) {
       final name = _nameController.text.trim();
       final email = _emailController.text.trim();
+      final phone = _phoneController.text.trim();
 
-      // Si se proporcionó un callback, llámalo con los datos del usuario
       if (widget.onLoginSuccess != null) {
-        widget.onLoginSuccess!(name, email);
+        widget.onLoginSuccess!(name, email, phone);
       } else {
-        // Tu comportamiento original para navegar a la pantalla de cotización
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (context) => QuotationScreen(name: name, email: email),
+            builder:
+                (context) =>
+                    QuotationScreen(name: name, email: email, phone: phone),
           ),
         );
       }
@@ -42,78 +40,99 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Registro'),
-        backgroundColor: Colors.redAccent,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                'Regístrate para continuar',
-                style: TextStyle(color: Colors.redAccent, fontSize: 24),
-              ),
-              SizedBox(height: 20),
-              // Campo de texto para el nombre
-              TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Nombre',
-                  labelStyle: TextStyle(color: Colors.redAccent),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.redAccent),
+      appBar: AppBar(title: Text('Registro')),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.account_circle,
+                  size: 80,
+                  color: Theme.of(context).primaryColor,
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Regístrate para continuar',
+                  style: TextStyle(fontSize: 24, color: Colors.white),
+                ),
+                SizedBox(height: 30),
+
+                TextFormField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Nombre Completo',
+                    prefixIcon: Icon(Icons.person),
+                    border: OutlineInputBorder(),
                   ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue),
+                  style: TextStyle(color: Colors.white),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor ingresa tu nombre';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 20),
+
+                TextFormField(
+                  controller: _phoneController,
+                  decoration: InputDecoration(
+                    labelText: 'Teléfono',
+                    prefixIcon: Icon(Icons.phone),
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.phone,
+                  style: TextStyle(color: Colors.white),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor ingresa tu teléfono';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 20),
+
+                TextFormField(
+                  controller: _emailController,
+                  decoration: InputDecoration(
+                    labelText: 'Correo Electrónico',
+                    prefixIcon: Icon(Icons.email),
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: TextInputType.emailAddress,
+                  style: TextStyle(color: Colors.white),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Por favor ingresa tu correo';
+                    }
+                    if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
+                      return 'Por favor ingresa un correo válido';
+                    }
+                    return null;
+                  },
+                ),
+                SizedBox(height: 30),
+
+                SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: _processForm,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Theme.of(context).primaryColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: Text('CONTINUAR', style: TextStyle(fontSize: 16)),
                   ),
                 ),
-                style: TextStyle(color: Colors.black),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa tu nombre';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 20),
-              // Campo de texto para el correo
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: 'Correo',
-                  labelStyle: TextStyle(color: Colors.redAccent),
-                  enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.redAccent),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.blue),
-                  ),
-                ),
-                style: TextStyle(color: Colors.black),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Por favor ingresa tu correo';
-                  }
-                  if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(value)) {
-                    return 'Por favor ingresa un correo válido';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 20),
-              // Botón para continuar
-              ElevatedButton(
-                onPressed: _processForm,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
-                ),
-                child: Text('Continuar'),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
