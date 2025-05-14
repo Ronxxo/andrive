@@ -1,0 +1,47 @@
+name: food_trailer_quotation
+description: Aplicación para cotización de trailers de comida
+
+publish_to: "none"
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.7.2 <4.0.0"
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.2
+
+  # Firebase
+  firebase_core: ^2.24.0
+  firebase_auth: ^4.12.1
+  cloud_firestore: ^4.9.2
+  firebase_storage: ^11.7.1
+
+  # Diseño y estado
+  provider: ^6.0.5
+  shared_preferences: ^2.2.1
+
+  # PDF y documentos
+  pdf: ^3.10.4
+  printing: ^5.11.1
+  path_provider: ^2.1.1
+
+  # Funcionalidades
+  url_launcher: ^6.2.1
+  share_plus: ^7.0.1
+  intl: ^0.18.1
+  google_fonts: ^6.1.0
+
+  # Validación y formularios
+  flutter_email_sender: ^7.0.0
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/trailer_1.jpg
+    - assets/images/trailer_2.jpg
+    - assets/images/trailer_3.jpg
