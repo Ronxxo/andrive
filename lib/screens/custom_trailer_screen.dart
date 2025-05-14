@@ -3,8 +3,8 @@ import 'package:food_trailer_quotation/services/pdf_service.dart';
 import 'package:food_trailer_quotation/screens/login_screen.dart';
 import 'package:food_trailer_quotation/models/component_model.dart';
 import 'package:share_plus/share_plus.dart';
-import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:food_trailer_quotation/services/quotation_service.dart';
 
 class CustomTrailerScreen extends StatefulWidget {
   const CustomTrailerScreen({super.key});
@@ -107,6 +107,7 @@ class _CustomTrailerScreenState extends State<CustomTrailerScreen> {
             (context) => LoginScreen(
               onLoginSuccess: (name, email, phone) async {
                 final pdfService = PdfService();
+                final quotationService = QuotationService();
 
                 String description = '${selectedBase['name']}\n';
                 description += '${selectedBase['description']}\n\n';
@@ -122,6 +123,18 @@ class _CustomTrailerScreenState extends State<CustomTrailerScreen> {
                     .join('\n');
 
                 try {
+                  // Guarda la cotización en Firestore
+                  await quotationService.saveQuotation(
+                    name: name,
+                    email: email,
+                    phone: phone,
+                    details: description,
+                    price: _totalPrice,
+                    trailerName: '${selectedBase['name']}',
+                    trailerDetails: description,
+                  );
+
+                  // Genera el PDF
                   await pdfService.generateQuotation(
                     name,
                     email,

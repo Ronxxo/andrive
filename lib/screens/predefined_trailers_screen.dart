@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'login_screen.dart';
 import '../services/pdf_service.dart';
-import 'dart:io';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:food_trailer_quotation/services/quotation_service.dart';
 
 class PredefinedTrailersScreen extends StatelessWidget {
   final PdfService pdfService = PdfService();
@@ -250,6 +250,20 @@ Medidas 170 de ancho x 2 de altura
     String phone,
   ) async {
     try {
+      final quotationService = QuotationService();
+
+      // Guarda la cotización en Firestore
+      await quotationService.saveQuotation(
+        name: name,
+        email: email,
+        phone: phone,
+        details: '${trailer['name']}\n\n${trailer['description']}',
+        price: trailer['price'].toDouble(),
+        trailerName: '${trailer['name']}',
+        trailerDetails: trailer['description'],
+      );
+
+      // Genera el PDF
       await pdfService.generateQuotation(
         name,
         email,
@@ -267,7 +281,7 @@ Medidas 170 de ancho x 2 de altura
 
       if (!context.mounted) return;
 
-      // Muestra el diálogo de éxito (opcional, puedes quitarlo si solo quieres compartir/descargar)
+      // Muestra el diálogo de éxito
       await showDialog(
         context: context,
         builder:

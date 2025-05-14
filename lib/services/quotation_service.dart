@@ -14,6 +14,7 @@ class QuotationService {
     required double price,
     String? imagePath,
     DateTime? date,
+    required String details,
   }) async {
     await quotations.add({
       'name': name,
